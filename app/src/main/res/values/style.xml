@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="corners_ten_percentage" >
+        <item name="cornerSize">10%</item>
+    </style>
+    <style name="corners_twenty_percentage" >
+        <item name="cornerSize">20%</item>
+    </style>
+    <style name="corners_three_percentage" >
+        <item name="cornerSize">3%</item>
+    </style>
+    <style name="corners_eight_percentage" >
+        <item name="cornerSize">8%</item>
+    </style>
+    <style name="corners_forty_percentage" >
+        <item name="cornerSize">40%</item>
+    </style>
+</resources>

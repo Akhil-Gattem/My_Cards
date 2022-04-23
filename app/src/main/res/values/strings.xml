@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">My Cards</string>
+    <string name="card_number">card number</string>
+    <string name="card_holder_name">Card Holder Name</string>
+    <string name="valid_till">Valid Till</string>
+    <string name="cvv">cvv</string>
+    <string name="card_type">Card Type</string>
+    <string name="notes_hint">Kotak Mahindra Credit Card</string>
+    <string name="month">Date</string>
+    <string name="year">Year</string>
+    <string name="slash"> / </string>
+</resources>
