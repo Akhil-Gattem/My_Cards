@@ -26,6 +26,7 @@ class AddCardDetails : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         setContentView(R.layout.layout_add_card)
         intentSend = Intent(this, MainActivity::class.java)
         add_button.setOnTouchListener(MotionOnClickListener(this.applicationContext) {

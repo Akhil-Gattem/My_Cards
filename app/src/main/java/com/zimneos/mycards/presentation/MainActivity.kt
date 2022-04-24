@@ -32,17 +32,23 @@ class MainActivity : AppCompatActivity(), OnItemListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         val intent = Intent(this, AddCardDetails::class.java)
         setContentView(R.layout.layout_main_activity)
+        add_new.setOnTouchListener(MotionOnClickListener(this.applicationContext) {
+            startActivity(intent)
+        })
         setUpViewModel()
         recyclerViewLayoutManager()
         initSwipe()
         subscribeToLiveData()
         saveDataInSharedPreferences()
         getData()
-        add_new.setOnTouchListener(MotionOnClickListener(this.applicationContext) {
-            startActivity(intent)
-        })
+    }
+
+    override fun onResume() {
+        super.onResume()
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 
     private fun initSwipe() {

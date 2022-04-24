@@ -16,4 +16,7 @@
     <style name="corners_forty_percentage" >
         <item name="cornerSize">40%</item>
     </style>
+    <style name="corners_hundred_percentage" >
+        <item name="cornerSize">40%</item>
+    </style>
 </resources>
