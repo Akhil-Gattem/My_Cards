@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="270dp"
     android:background="@color/light_dark"
@@ -11,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="2dp"
-        android:background="@drawable/bottom_bg"
+        android:background="@android:color/transparent"
         android:paddingHorizontal="8dp"
         android:scaleType="fitCenter"
         app:layout_constraintVertical_bias="0"
@@ -61,7 +62,7 @@
         android:layout_width="match_parent"
         android:layout_height="210dp"
         android:alpha="0.8"
-        android:background="@drawable/black_wood"
+        android:background="@drawable/black_card_bg_one"
         android:paddingHorizontal="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -105,6 +106,22 @@
         app:layout_constraintStart_toStartOf="@+id/card_number"
         app:layout_constraintTop_toBottomOf="@+id/card_number"
         app:layout_constraintVertical_bias="0.1" />
+
+    <ImageButton
+        android:id="@+id/copy"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:hapticFeedbackEnabled="true"
+        android:background="@drawable/copy_selector"
+        app:layout_constraintBottom_toBottomOf="@+id/holder_name"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="@+id/bg"
+        app:layout_constraintHeight_percent="0.11"
+        app:layout_constraintVertical_bias="0.6"
+        app:layout_constraintHorizontal_bias="0.25"
+        app:layout_constraintStart_toEndOf="@+id/card_number"
+        app:layout_constraintTop_toTopOf="@+id/card_number"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/valid_till"

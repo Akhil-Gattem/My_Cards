@@ -7,15 +7,7 @@
     <style name="corners_twenty_percentage" >
         <item name="cornerSize">20%</item>
     </style>
-    <style name="corners_three_percentage" >
-        <item name="cornerSize">3%</item>
-    </style>
-    <style name="corners_eight_percentage" >
-        <item name="cornerSize">8%</item>
-    </style>
-    <style name="corners_forty_percentage" >
-        <item name="cornerSize">40%</item>
-    </style>
+
     <style name="corners_hundred_percentage" >
         <item name="cornerSize">40%</item>
     </style>

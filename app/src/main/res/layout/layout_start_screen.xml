@@ -17,7 +17,7 @@
         app:layout_constraintHeight_percent="0.25"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.3"
+        app:layout_constraintVertical_bias="0.4"
         app:shapeAppearanceOverlay="@style/corners_hundred_percentage" />
 
     <ImageView

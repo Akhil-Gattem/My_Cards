@@ -1,15 +1,25 @@
 package com.zimneos.mycards.presentation
 
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.*
+import android.os.Build
 import android.os.Bundle
-import android.widget.Toast
+import android.os.Vibrator
+import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
@@ -27,14 +37,21 @@ class MainActivity : AppCompatActivity(), OnItemListener {
     private lateinit var viewModel: ListViewModel
     private lateinit var listGet: Holding
     private var currentSize: Int = 0
-    var p = Paint()
+    lateinit var notificationManager: NotificationManager
+    lateinit var notificationChannel: NotificationChannel
+    lateinit var builder: Notification.Builder
+    private val channelId = "id.notifications"
+    private val description = "my notification"
+
     private val cardsListAdapter = CardsListAdapter(arrayListOf(), this)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-        val intent = Intent(this, AddCardDetails::class.java)
         setContentView(R.layout.layout_main_activity)
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val intent = Intent(this, AddCardDetails::class.java)
         add_new.setOnTouchListener(MotionOnClickListener(this.applicationContext) {
             startActivity(intent)
         })
@@ -46,14 +63,16 @@ class MainActivity : AppCompatActivity(), OnItemListener {
         getData()
     }
 
-    override fun onResume() {
-        super.onResume()
-        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finishAffinity()
     }
 
     private fun initSwipe() {
+        val paint = Paint()
         val simpleItemTouchCallback = object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+
             override fun onMove(
                 recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder,
                 target: RecyclerView.ViewHolder
@@ -105,7 +124,7 @@ class MainActivity : AppCompatActivity(), OnItemListener {
                             itemView.right.toFloat(),
                             itemView.bottom.toFloat()
                         )
-                        c.drawBitmap(icon, null, iconDest, p)
+                        c.drawBitmap(icon, null, iconDest, paint)
                     }
                 }
                 super.onChildDraw(
@@ -209,12 +228,46 @@ class MainActivity : AppCompatActivity(), OnItemListener {
         }
     }
 
-    override fun onItemClick(getTitle: CharSequence) {
-        Toast.makeText(this, getTitle, Toast.LENGTH_SHORT).show()
+    private fun notification(item: Holding) {
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationChannel =
+                NotificationChannel(channelId, description, NotificationManager.IMPORTANCE_HIGH)
+            notificationChannel.enableLights(true)
+            notificationChannel.lightColor = Color.GREEN
+            notificationChannel.enableVibration(false)
+            notificationManager.createNotificationChannel(notificationChannel)
+            builder = Notification.Builder(applicationContext, channelId)
+                .setTimeoutAfter(200000)
+                .setSmallIcon(R.drawable.app_logo_avd)
+                .setContentTitle("Expiry: " + item.month + "/" + item.year)
+                .setContentText("Cvv: " + item.cvv)
+
+        }
+        notificationManager.notify(1234, builder.build())
+    }
+
+
+    override fun copyButtonClicked(view: View, item: Holding) {
+        (this.getSystemService(VIBRATOR_SERVICE) as Vibrator).vibrate(9)
+        Snackbar.make(
+            view,
+            "CARD NUMBER - Copied to Clipboard\nEXPIRY and CVV in Notification",
+            Snackbar.LENGTH_LONG
+        )
+            .setAction("DISMISS") {}.show()
+        (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(
+            ClipData.newPlainText(
+                "label",
+                item.cardNumber?.replace(" ", "")
+            )
+        )
+        notification(item)
     }
 
     companion object {
         const val MY_PREFS_NAME = "Cards"
     }
+
 }
 

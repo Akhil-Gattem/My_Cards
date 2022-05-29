@@ -4,13 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.zimneos.mycards.R
 import com.zimneos.mycards.common.MotionOnClickListener
 import kotlinx.android.synthetic.main.layout_add_card.*
-import kotlinx.android.synthetic.main.spinner_card_type_layout.view.*
 
 class AddCardDetails : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
@@ -43,7 +41,9 @@ class AddCardDetails : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 edit_card_number.setText("")
                 card_notes.hint = ""
                 intentSend.putExtra("isAdded", true)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
                 startActivity(intentSend)
+                this.finish()
             }
         })
 
@@ -61,6 +61,10 @@ class AddCardDetails : AppCompatActivity(), AdapterView.OnItemSelectedListener {
         })
     }
 
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+    }
 
     private fun checkGetCardNumber(): Boolean {
         getCardNumber = edit_card_number.text.toString()
