@@ -1,6 +1,7 @@
 package com.zimneos.mycards.presentation
 
 
+import android.app.AlertDialog
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -8,10 +9,11 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.*
 import android.os.Build
 import android.os.Bundle
-import android.os.Vibrator
+import android.view.HapticFeedbackConstants
 import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -37,9 +39,9 @@ class MainActivity : AppCompatActivity(), OnItemListener {
     private lateinit var viewModel: ListViewModel
     private lateinit var listGet: Holding
     private var currentSize: Int = 0
-    lateinit var notificationManager: NotificationManager
-    lateinit var notificationChannel: NotificationChannel
-    lateinit var builder: Notification.Builder
+    private lateinit var notificationManager: NotificationManager
+    private lateinit var notificationChannel: NotificationChannel
+    private lateinit var builder: Notification.Builder
     private val channelId = "id.notifications"
     private val description = "my notification"
 
@@ -63,6 +65,17 @@ class MainActivity : AppCompatActivity(), OnItemListener {
         getData()
     }
 
+    private fun setViewVisibility(size: Int) {
+        if (size != 0) {
+            arrow.visibility = View.INVISIBLE
+            click_to_add_text.visibility = View.INVISIBLE
+        } else {
+            arrow.visibility = View.VISIBLE
+            click_to_add_text.visibility = View.VISIBLE
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         super.onBackPressed()
         finishAffinity()
@@ -81,15 +94,33 @@ class MainActivity : AppCompatActivity(), OnItemListener {
             }
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                var position = viewHolder.adapterPosition
+                val position = viewHolder.adapterPosition
                 val sizeBefore = ListViewModel.mockData.size
                 val savedDataRemove = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit()
-                ListViewModel.mockData.removeAt(position)
-                cardsListAdapter.notifyItemRemoved(position)
-                var toBeSaved = position
-                while (position <= sizeBefore) {
+
+                AlertDialog.Builder(this@MainActivity,R.style.AlertDialog)
+                    .setTitle("Delete Card")
+                    .setMessage("Are you sure you want to delete this card details?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        deleteCardData(position, sizeBefore, savedDataRemove)
+                    }
+                    .setNegativeButton("No") { _, _ ->
+                        cardsListAdapter.notifyItemChanged(viewHolder.adapterPosition)
+                    }.show()
+            }
+
+            private fun deleteCardData(
+                position: Int,
+                sizeBefore: Int,
+                savedDataRemove: SharedPreferences.Editor
+            ) {
+                var position1 = position
+                ListViewModel.mockData.removeAt(position1)
+                cardsListAdapter.notifyItemRemoved(position1)
+                var toBeSaved = position1
+                while (position1 <= sizeBefore) {
                     try {
-                        val getDataAt = position + 1
+                        val getDataAt = position1 + 1
                         savedDataRemove.remove(toBeSaved.toString())
                         savedDataRemove.apply()
                         saveListInLocal(
@@ -98,7 +129,7 @@ class MainActivity : AppCompatActivity(), OnItemListener {
                         )
                         savedDataRemove.apply()
                         toBeSaved += 1
-                        position += 1
+                        position1 += 1
                     } catch (exception: JsonSyntaxException) {
                         break
                     }
@@ -133,6 +164,7 @@ class MainActivity : AppCompatActivity(), OnItemListener {
                 )
             }
         }
+
         val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
     }
@@ -225,6 +257,7 @@ class MainActivity : AppCompatActivity(), OnItemListener {
     private fun subscribeToLiveData() {
         viewModel.cardData.observe(this) {
             cardsListAdapter.updateCountries(it)
+            setViewVisibility(it.size)
         }
     }
 
@@ -249,12 +282,10 @@ class MainActivity : AppCompatActivity(), OnItemListener {
 
 
     override fun copyButtonClicked(view: View, item: Holding) {
-        (this.getSystemService(VIBRATOR_SERVICE) as Vibrator).vibrate(9)
-        Snackbar.make(
-            view,
+        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        Snackbar.make(view,
             "CARD NUMBER - Copied to Clipboard\nEXPIRY and CVV in Notification",
-            Snackbar.LENGTH_LONG
-        )
+            Snackbar.LENGTH_LONG)
             .setAction("DISMISS") {}.show()
         (getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).setPrimaryClip(
             ClipData.newPlainText(

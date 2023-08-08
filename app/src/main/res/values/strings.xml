@@ -9,4 +9,5 @@
     <string name="month">Date</string>
     <string name="year">Year</string>
     <string name="slash"> / </string>
+    <string name="click_here_n_nto_add_your_first_card">Click here\n\nto add your first card</string>
 </resources>

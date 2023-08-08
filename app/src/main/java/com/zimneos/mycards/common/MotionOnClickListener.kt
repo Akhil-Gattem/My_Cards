@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.SystemClock
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.RequiresApi
@@ -22,6 +23,7 @@ class MotionOnClickListener(private val context: Context?, private val onClick: 
             MotionEvent.ACTION_DOWN -> {
                 view?.isPressed = true
                 animator(view, R.animator.btn_animator_scale_down)
+                view?.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             }
             MotionEvent.ACTION_UP -> {
                 when {

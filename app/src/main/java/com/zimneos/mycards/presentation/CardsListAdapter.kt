@@ -2,19 +2,11 @@ package com.zimneos.mycards.presentation
 
 
 import android.annotation.SuppressLint
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.ClipboardManager
 import android.content.Context
-import android.graphics.Color
-import android.os.Build
-import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.recyclerview.widget.RecyclerView
 import com.zimneos.mycards.R
 import com.zimneos.mycards.model.Holding
@@ -24,11 +16,6 @@ import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.view.*
 class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener: OnItemListener) :
     RecyclerView.Adapter<CardsListAdapter.ViewHolder>() {
 
-    lateinit var notificationManager: NotificationManager
-    lateinit var notificationChannel: NotificationChannel
-    lateinit var builder: Notification.Builder
-    private val channelId = "id.notifications"
-    private val description = "my notification"
     private var context: Context? = null
 
     fun updateCountries(newCountries: List<Holding>) {
@@ -61,8 +48,8 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
             copy.setOnClickListener {
                 clickListener.copyButtonClicked(holder.itemView, cards[position])
             }
-            when (cards[position].cardType) {
-                "VISA" -> {
+            when {
+                position % 2 == 0 -> {
                     card_type_logo.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.visa_logo
@@ -72,7 +59,8 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
                         R.drawable.black_card_bg_one
                     )
                 }
-                "RUPAY" -> {
+
+                cards[position].cardType == "MASTERCARD" -> {
                     card_type_logo.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.rupay_logo
@@ -82,6 +70,7 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
                         R.drawable.black_card_bg_two
                     )
                 }
+
                 else -> {
                     card_type_logo.background = ContextCompat.getDrawable(
                         card_type_logo.context,
