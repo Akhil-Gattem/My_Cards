@@ -1,16 +1,17 @@
 package com.zimneos.mycards.presentation
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import com.zimneos.mycards.R
-import kotlinx.android.synthetic.main.layout_start_screen.logo
+import kotlinx.android.synthetic.main.layout_start_screen.*
 
 
 class StartScreenActivity : AppCompatActivity(), BiometricAuthListener {
@@ -22,7 +23,9 @@ class StartScreenActivity : AppCompatActivity(), BiometricAuthListener {
         setContentView(R.layout.layout_start_screen)
 
         splashScreenLogoAnimation()
-        checkBiometricIsSupported()
+        Handler(Looper.getMainLooper()).postDelayed({
+            checkBiometricIsSupported()
+        }, 1000)
 
     }
 
@@ -41,6 +44,17 @@ class StartScreenActivity : AppCompatActivity(), BiometricAuthListener {
                 as AnimatedVectorDrawable
         logo.setImageDrawable(animatedVectorDrawable)
         animatedVectorDrawable.start()
+
+        imageviewMoveUpAnimation(bg)
+        imageviewMoveUpAnimation(logo)
+    }
+
+    private fun imageviewMoveUpAnimation(view: View) {
+        ObjectAnimator.ofFloat(view, "translationY", 0f, -350f).apply {
+            startDelay = 500
+            duration = 500
+            start()
+        }
     }
 
     override fun onBiometricAuthenticateError(error: Int, errMsg: String) {

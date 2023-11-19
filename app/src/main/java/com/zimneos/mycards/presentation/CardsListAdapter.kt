@@ -3,6 +3,7 @@ package com.zimneos.mycards.presentation
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,14 +14,19 @@ import com.zimneos.mycards.model.Holding
 import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.view.*
 
 
-class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener: OnItemListener) :
+class CardsListAdapter(
+    private var cards: MutableList<Holding> = mutableListOf(),
+    var clickListener: OnItemListener
+) :
     RecyclerView.Adapter<CardsListAdapter.ViewHolder>() {
 
     private var context: Context? = null
 
-    fun updateCountries(newCountries: List<Holding>) {
-        cards.clear()
-        cards.addAll(newCountries)
+    @SuppressLint("NotifyDataSetChanged")
+    fun updateCountries(newCountries: MutableList<Holding>) {
+        this.cards.clear()
+        this.cards.addAll(newCountries)
+        notifyDataSetChanged()
     }
 
     inner class ViewHolder internal constructor(itemVew: View) :
@@ -29,9 +35,7 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
     override fun onCreateViewHolder(parent: ViewGroup, p1: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.layout_main_screen_recylerview_list, parent, false)
-
         context = parent.context
-
         return ViewHolder(view)
     }
 
@@ -40,6 +44,15 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
     @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.itemView.apply {
+            setOnLongClickListener {
+                when (delete_btn.visibility) {
+                    View.GONE -> delete_btn.visibility = View.VISIBLE
+                    View.VISIBLE -> delete_btn.visibility = View.GONE
+                    View.INVISIBLE -> delete_btn.visibility = View.VISIBLE
+                }
+                this.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                true
+            }
             card_number.text = cards[position].cardNumber
             holder_name.text = cards[position].cardHolderName
             valid_till_date.text = cards[position].month + "/" + cards[position].year
@@ -47,6 +60,19 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
             card_info.text = cards[position].cardNote
             copy.setOnClickListener {
                 clickListener.copyButtonClicked(holder.itemView, cards[position])
+            }
+            delete_btn.setOnClickListener {
+                clickListener.deletedButtonClicked(
+                    holder.itemView,
+                    cards[position].cardNumber,
+                    cards[position].cardHolderName,
+                    cards[position].month,
+                    cards[position].year,
+                    cards[position].cvv,
+                    cards[position].cardType,
+                    cards[position].cardNote,
+                    position
+                )
             }
             when {
                 position % 2 == 0 -> {
@@ -88,5 +114,16 @@ class CardsListAdapter(private var cards: ArrayList<Holding>, var clickListener:
 
     interface OnItemListener {
         fun copyButtonClicked(view: View, item: Holding)
+        fun deletedButtonClicked(
+            view: View,
+            cardNumber: String?,
+            cardHolderName: String?,
+            month: String?,
+            year: String?,
+            cvv: String?,
+            cardType: String?,
+            cardNote: String?,
+            position: Int
+        )
     }
 }

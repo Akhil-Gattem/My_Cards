@@ -6,6 +6,12 @@
     android:background="@color/light_dark"
     tools:context=".presentation.MainActivity">
 
-    <include layout="@layout/layout_main_content_for_fragment" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/main_container"
+        android:name="com.zimneos.mycards.presentation.CardDataFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout="@layout/layout_main_content_for_fragment" />
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

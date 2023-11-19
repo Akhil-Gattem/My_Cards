@@ -63,7 +63,7 @@ object BiometricUtils {
     fun showBiometricPrompt(
         title: String = "Unlock My Cards",
         subtitle: String = "",
-        description: String = "Enter biometric credentials to proceed\nInput your Fingerprint or FaceID to ensure it's you!",
+        description: String = "Enter biometric credentials\nInput your fingerprint to ensure it's you!",
         activity: AppCompatActivity,
         listener: BiometricAuthListener,
         cryptoObject: BiometricPrompt.CryptoObject? = null,

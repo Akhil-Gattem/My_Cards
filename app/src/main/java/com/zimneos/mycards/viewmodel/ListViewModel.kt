@@ -1,24 +1,52 @@
 package com.zimneos.mycards.viewmodel
 
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.zimneos.mycards.model.Holding
 
-open class ListViewModel : ViewModel() {
+class ListViewModel : ViewModel() {
 
-    val cardData = MutableLiveData<ArrayList<Holding>>()
-    private val sizeData = MutableLiveData<Int>()
+    private val _cardData = MutableLiveData<MutableList<Holding>>()
+    val cardData: LiveData<MutableList<Holding>> get() = _cardData
 
-    fun refresh() {
-        fetchCountries()
+    private val holdingArrayList: MutableList<Holding> = mutableListOf()
+
+    init {
+        _cardData.value = holdingArrayList
     }
 
-    private fun fetchCountries() {
-        cardData.value = mockData
-        sizeData.value = mockData.size
+    fun refresh(){
+        _cardData.value = holdingArrayList
     }
 
-    companion object {
-        val mockData = ArrayList<Holding>()
+    fun addData(data: Holding) {
+        holdingArrayList.add(data)
+    }
+
+    fun clearData() {
+        holdingArrayList.clear()
+    }
+
+    fun deleteData(
+        cardNumber: String?,
+        cardHolderName: String?,
+        month: String?,
+        year: String?,
+        cvv: String?,
+        cardType: String?,
+        cardNote: String?
+    ) {
+        holdingArrayList.remove(
+            Holding(
+                cardNumber,
+                cardHolderName,
+                month,
+                year,
+                cvv,
+                cardType,
+                cardNote
+            )
+        )
     }
 }
