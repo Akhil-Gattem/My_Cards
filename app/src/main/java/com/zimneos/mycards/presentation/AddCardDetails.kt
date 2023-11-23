@@ -24,12 +24,10 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
     private lateinit var getCardType: String
     private lateinit var getCardNotes: String
     private lateinit var viewModel: ListViewModel
-    private var courses = arrayOf<String?>("VISA", "MASTERCARD", "RUPAY")
-
+    private var cardTypes = arrayOf<String?>("VISA", "MASTERCARD", "RUPAY")
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val rootView = inflater.inflate(R.layout.layout_add_card, container, false)
         setUpViewModel()
@@ -39,38 +37,14 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         add_button.setOnTouchListener(MotionOnClickListener(requireContext()) {
-            if (checkGetCardNumber()
-                && checkGetHolderName() &&
-                checkGetMonth() && checkGetYear() &&
-                checkGetCVV() && checkGetCardType() && checkGetCardNotes()
-            ) {
-                viewModel.addData(
-                    Holding(
-                        cardNumber = getCardNumber,
-                        cardHolderName = getHolderName,
-                        month = getMonth,
-                        year = getYear,
-                        cvv = getCVV,
-                        cardType = getCardType,
-                        cardNote = getCardNotes
-                    )
-                )
-                card_notes.setText("")
-                edit_cvv.setText("")
-                edit_valid_year.setText("")
-                edit_valid_date.setText("")
-                edit_holder_name.setText("")
-                edit_card_number.setText("")
-                card_notes.hint = ""
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(R.id.main_container, CardDataFragment())
-                    .addToBackStack(null)
-                    .commit()
-
+            if (checkEditTextCriteria()) {
+                addDataInViewModel()
+                clearEditTexts()
+                navigateToCardDataFragment()
             }
         })
 
-        val customDropDownAdapter = CustomDropDownAdapter(requireContext(), courses)
+        val customDropDownAdapter = CustomDropDownAdapter(requireContext(), cardTypes)
         spinner_card_type.adapter = customDropDownAdapter
         spinner_card_type.onItemSelectedListener = this
 
@@ -84,6 +58,49 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         })
     }
 
+    private fun navigateToCardDataFragment() {
+        requireActivity().supportFragmentManager.beginTransaction().apply {
+            setCustomAnimations(
+                R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out
+            )
+            replace(R.id.main_container, CardDataFragment())
+            commit()
+        }
+    }
+
+    private fun checkEditTextCriteria() =
+        checkGetCardNumber()
+                && checkGetHolderName()
+                && checkGetMonth()
+                && checkGetYear()
+                && checkGetCVV()
+                && checkGetCardType()
+                && checkGetCardNotes()
+
+    private fun clearEditTexts() {
+        card_notes.setText("")
+        edit_cvv.setText("")
+        edit_valid_year.setText("")
+        edit_valid_date.setText("")
+        edit_holder_name.setText("")
+        edit_card_number.setText("")
+        card_notes.hint = ""
+    }
+
+    private fun addDataInViewModel() {
+        viewModel.addData(
+            Holding(
+                cardNumber = getCardNumber,
+                cardHolderName = getHolderName,
+                month = getMonth,
+                year = getYear,
+                cvv = getCVV,
+                cardType = getCardType,
+                cardNote = getCardNotes
+            )
+        )
+    }
+
     private fun setUpViewModel() {
         viewModel = ViewModelProviders.of(requireActivity())[ListViewModel::class.java]
     }
@@ -93,8 +110,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         return if (getCardNumber.length == 19) {
             text_card_number.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_white
+                    requireContext(), R.color.light_white
                 )
             )
             text_card_number_warning.visibility = View.INVISIBLE
@@ -103,8 +119,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
             text_card_number_warning.visibility = View.VISIBLE
             text_card_number.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_red
+                    requireContext(), R.color.light_red
                 )
             )
             false
@@ -116,8 +131,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         return if (getHolderName.length > 1) {
             text_holder_name.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_white
+                    requireContext(), R.color.light_white
                 )
             )
             text_holder_name_warning.visibility = View.INVISIBLE
@@ -126,8 +140,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
             text_holder_name_warning.visibility = View.VISIBLE
             text_holder_name.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_red
+                    requireContext(), R.color.light_red
                 )
             )
             false
@@ -139,8 +152,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         return if (getMonth.length == 2) {
             text_valid_till.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_white
+                    requireContext(), R.color.light_white
                 )
             )
             text_valid_till_warning.visibility = View.INVISIBLE
@@ -148,8 +160,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         } else {
             text_valid_till.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_red
+                    requireContext(), R.color.light_red
                 )
             )
             text_valid_till_warning.visibility = View.VISIBLE
@@ -162,8 +173,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         return if (getYear.length == 4) {
             text_valid_till.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_white
+                    requireContext(), R.color.light_white
                 )
             )
             text_valid_till_warning.visibility = View.INVISIBLE
@@ -171,8 +181,7 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         } else {
             text_valid_till.setTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_red
+                    requireContext(), R.color.light_red
                 )
             )
             text_valid_till_warning.visibility = View.VISIBLE
@@ -203,16 +212,14 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         return if (getCardNotes.isEmpty()) {
             card_notes.setHintTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_red_fade
+                    requireContext(), R.color.light_red_fade
                 )
             )
             false
         } else {
             card_notes.setHintTextColor(
                 ContextCompat.getColor(
-                    requireContext(),
-                    R.color.light_white
+                    requireContext(), R.color.light_white
                 )
             )
             true

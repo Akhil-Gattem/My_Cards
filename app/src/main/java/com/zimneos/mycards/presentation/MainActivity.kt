@@ -1,14 +1,11 @@
 package com.zimneos.mycards.presentation
 
-import android.content.pm.PackageManager
 import android.graphics.*
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.annotation.Size
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import com.google.gson.Gson
@@ -75,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         saveData.putString(key, json)
         saveData.apply()
     }
-
 
     private fun getData() {
         val getSavedDataSize = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE)

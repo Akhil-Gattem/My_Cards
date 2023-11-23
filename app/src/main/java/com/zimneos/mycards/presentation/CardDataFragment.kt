@@ -7,19 +7,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import android.content.Context.CLIPBOARD_SERVICE
 import android.content.Context.NOTIFICATION_SERVICE
-import android.graphics.*
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.content.ContextCompat.getSystemService
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,6 +27,7 @@ import com.zimneos.mycards.common.MotionOnClickListener
 import com.zimneos.mycards.model.Holding
 import com.zimneos.mycards.viewmodel.ListViewModel
 import kotlinx.android.synthetic.main.layout_main_content_for_fragment.*
+import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.*
 import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.view.*
 
 
@@ -44,8 +43,7 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
 
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val rootView = inflater.inflate(R.layout.fragment_card_data, container, false)
         setUpViewModel()
@@ -58,23 +56,38 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
         notificationManager =
             requireActivity().getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         add_new.setOnTouchListener(MotionOnClickListener(requireContext()) {
-            requireActivity().supportFragmentManager.beginTransaction()
-                .replace(R.id.main_container, AddCardDetails())
-                .addToBackStack(null)
-                .commit()
+            navigateToAddCardFragment()
         })
         recyclerViewLayoutManager()
     }
+
+    private fun navigateToAddCardFragment() {
+        requireActivity().supportFragmentManager.beginTransaction().apply {
+            setCustomAnimations(
+                R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out
+            )
+            replace(R.id.main_container, AddCardDetails()).addToBackStack(null).commit()
+        }
+    }
+
 
     private fun setViewVisibility(size: Int) {
         if (size != 0) {
             arrow.visibility = View.INVISIBLE
             click_to_add_text.visibility = View.INVISIBLE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pushNotificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            }
         } else {
             arrow.visibility = View.VISIBLE
             click_to_add_text.visibility = View.VISIBLE
         }
     }
+
+
+    private val pushNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {}
 
     private fun setUpViewModel() {
         viewModel = ViewModelProviders.of(requireActivity())[ListViewModel::class.java]
@@ -99,7 +112,7 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
         }
     }
 
-    private fun notification(item: Holding) {
+    private fun showNotification(item: Holding) {
         notificationManager =
             requireActivity().getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -110,7 +123,6 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
             notificationChannel.enableVibration(false)
             notificationManager.createNotificationChannel(notificationChannel)
             builder = Notification.Builder(requireContext(), channelId)
-                .setTimeoutAfter(200000)
                 .setSmallIcon(R.drawable.app_logo_avd)
                 .setContentTitle("Expiry: " + item.month + "/" + item.year)
                 .setContentText("Cvv: " + item.cvv)
@@ -127,15 +139,14 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
             "CARD NUMBER - Copied to Clipboard\nEXPIRY and CVV in Notification",
             Snackbar.LENGTH_LONG
         ).setAction("DISMISS") {}.show()
+        copyCardNumber(item)
+        showNotification(item)
+    }
+
+    private fun copyCardNumber(item: Holding) {
         (requireActivity().getSystemService(CLIPBOARD_SERVICE) as ClipboardManager).apply {
-            setPrimaryClip(
-                ClipData.newPlainText(
-                    "label",
-                    item.cardNumber?.replace(" ", "")
-                )
-            )
+            setPrimaryClip(ClipData.newPlainText("label", item.cardNumber?.replace(" ", "")))
         }
-        notification(item)
     }
 
     override fun deletedButtonClicked(
@@ -149,26 +160,31 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
         cardNote: String?,
         position: Int
     ) {
-        AlertDialog.Builder(requireContext(), R.style.AlertDialog)
-            .setTitle("Delete Card")
+        AlertDialog.Builder(requireContext(), R.style.AlertDialog).setTitle("Delete Card")
             .setMessage("Are you sure you want to delete this card details?")
             .setPositiveButton("Yes") { _, _ ->
-                viewModel.deleteData(
-                    cardNumber,
-                    cardHolderName,
-                    month,
-                    year,
-                    cvv,
-                    cardType,
-                    cardNote
+                deleteCardData(
+                    cardNumber, cardHolderName, month, year, cvv, cardType, cardNote, position
                 )
-                cardsListAdapter.notifyItemRemoved(position)
-                viewModel.refresh()
                 view.delete_btn.visibility = View.GONE
-            }
-            .setNegativeButton("No") { _, _ ->
+            }.setNegativeButton("No") { _, _ ->
                 view.delete_btn.visibility = View.GONE
             }.show()
+    }
+
+    private fun deleteCardData(
+        cardNumber: String?,
+        cardHolderName: String?,
+        month: String?,
+        year: String?,
+        cvv: String?,
+        cardType: String?,
+        cardNote: String?,
+        position: Int
+    ) {
+        viewModel.deleteData(cardNumber, cardHolderName, month, year, cvv, cardType, cardNote)
+        cardsListAdapter.notifyItemRemoved(position)
+        viewModel.refresh()
     }
 
 }
