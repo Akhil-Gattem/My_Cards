@@ -74,34 +74,40 @@ class CardsListAdapter(
                     position
                 )
             }
-            when {
-                position % 2 == 0 -> {
+            when (cards[position].cardType) {
+                "VISA" -> {
                     card_type_logo.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.visa_logo
                     )
+                }
+                "RUPAY" -> {
+                    card_type_logo.background = ContextCompat.getDrawable(
+                        card_type_logo.context,
+                        R.drawable.rupay_logo
+                    )
+                }
+                "MASTERCARD" -> {
+                    card_type_logo.background = ContextCompat.getDrawable(
+                        card_type_logo.context,
+                        R.drawable.master_card_logo
+                    )
+                }
+            }
+            when {
+                cards[position].cardNumber?.last()?.digitToInt()!! in 1..3 -> {
                     bg.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.black_card_bg_one
                     )
                 }
-
-                cards[position].cardType == "MASTERCARD" -> {
-                    card_type_logo.background = ContextCompat.getDrawable(
-                        card_type_logo.context,
-                        R.drawable.rupay_logo
-                    )
+                cards[position].cardNumber?.last()?.digitToInt()!! in 4..6 -> {
                     bg.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.black_card_bg_two
                     )
                 }
-
                 else -> {
-                    card_type_logo.background = ContextCompat.getDrawable(
-                        card_type_logo.context,
-                        R.drawable.master_card_logo
-                    )
                     bg.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.black_card_bg_three

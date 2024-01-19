@@ -10,4 +10,6 @@
     <string name="year">Year</string>
     <string name="slash"> / </string>
     <string name="click_here_n_nto_add_your_first_card">Click here\n\nto add your first card</string>
+    <string name="_20">20</string>
+    <string name="save">save</string>
 </resources>

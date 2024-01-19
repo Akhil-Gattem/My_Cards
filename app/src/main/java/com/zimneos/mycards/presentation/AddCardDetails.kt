@@ -1,10 +1,13 @@
 package com.zimneos.mycards.presentation
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.EditText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
@@ -27,7 +30,9 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
     private var cardTypes = arrayOf<String?>("VISA", "MASTERCARD", "RUPAY")
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View? {
         val rootView = inflater.inflate(R.layout.layout_add_card, container, false)
         setUpViewModel()
@@ -48,14 +53,43 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
         spinner_card_type.adapter = customDropDownAdapter
         spinner_card_type.onItemSelectedListener = this
 
-        edit_card_number.addTextChangedListener(object : SeparatorTextWatcher(' ', 4) {
-            override fun onAfterTextChanged(text: String) {
-                edit_card_number.run {
-                    setText(text)
-                    setSelection(text.length)
+        setYearEditTextCursor()
+        setEditTextFocusToNextTextView(edit_card_number, edit_holder_name, 16, true)
+        setEditTextFocusToNextTextView(edit_valid_date, edit_valid_year, 2)
+        setEditTextFocusToNextTextView(edit_valid_year, edit_cvv, 4)
+        setEditTextFocusToNextTextView(edit_cvv, edit_card_notes, 3)
+    }
+
+    private fun setEditTextFocusToNextTextView(
+        currentEditText: EditText,
+        NextEditText: EditText,
+        length: Int,
+        setSpaceAfterFourDigits: Boolean = false
+    ) {
+        currentEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                if (currentEditText.text.toString().length == length) {
+                    currentEditText.clearFocus()
+                    NextEditText.requestFocus()
+                    NextEditText.isCursorVisible = true
+                    if (setSpaceAfterFourDigits) {
+                        val stringWithSpaceAfterEvery4thChar =
+                            currentEditText.text.replace("....".toRegex(), "$0 ")
+                        currentEditText.setText(stringWithSpaceAfterEvery4thChar)
+                    }
                 }
             }
+
+            override fun afterTextChanged(p0: Editable?) {}
         })
+    }
+
+    private fun setYearEditTextCursor() {
+        edit_valid_year.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) edit_valid_year.setSelection(2)
+        }
     }
 
     private fun navigateToCardDataFragment() {
@@ -78,13 +112,13 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
                 && checkGetCardNotes()
 
     private fun clearEditTexts() {
-        card_notes.setText("")
+        edit_card_notes.setText("")
         edit_cvv.setText("")
         edit_valid_year.setText("")
         edit_valid_date.setText("")
         edit_holder_name.setText("")
         edit_card_number.setText("")
-        card_notes.hint = ""
+        edit_card_notes.hint = ""
     }
 
     private fun addDataInViewModel() {
@@ -208,16 +242,16 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener {
     }
 
     private fun checkGetCardNotes(): Boolean {
-        getCardNotes = card_notes.text.toString()
+        getCardNotes = edit_card_notes.text.toString()
         return if (getCardNotes.isEmpty()) {
-            card_notes.setHintTextColor(
+            edit_card_notes.setHintTextColor(
                 ContextCompat.getColor(
                     requireContext(), R.color.light_red_fade
                 )
             )
             false
         } else {
-            card_notes.setHintTextColor(
+            edit_card_notes.setHintTextColor(
                 ContextCompat.getColor(
                     requireContext(), R.color.light_white
                 )
