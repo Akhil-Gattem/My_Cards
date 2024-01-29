@@ -95,7 +95,7 @@ class CardsListAdapter(
                 }
             }
             when {
-                cards[position].cardNumber?.last()?.digitToInt()!! in 1..3 -> {
+                cards[position].cardNumber?.last()?.digitToInt()!! in 0..3 -> {
                     bg.background = ContextCompat.getDrawable(
                         card_type_logo.context,
                         R.drawable.black_card_bg_one

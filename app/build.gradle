@@ -5,13 +5,12 @@ plugins {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.zimneos.mycards"
         minSdk 21
-        //noinspection OldTargetApi
-        targetSdk 33
+        targetSdk 34
         versionCode 10
         versionName "1.2"
 
@@ -46,7 +45,8 @@ dependencies {
     implementation "android.arch.lifecycle:extensions:1.1.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel:2.3.1"
     implementation "androidx.lifecycle:lifecycle-livedata:2.3.1"
-
+    implementation "androidx.security:security-crypto:1.1.0-alpha03"
+    implementation 'com.github.devnied.emvnfccard:library:3.0.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:'
     implementation 'com.google.code.gson:gson:2.10.1'
