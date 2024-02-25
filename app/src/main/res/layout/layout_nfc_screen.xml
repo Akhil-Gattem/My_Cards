@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/light_dark">
@@ -10,14 +11,43 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@drawable/nfc"
+        android:elevation="3dp"
+        app:layout_constraintBottom_toBottomOf="@id/bg_gradient"
+        app:layout_constraintEnd_toEndOf="@id/bg_gradient"
+        app:layout_constraintWidth_percent="0.5"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintStart_toStartOf="@id/bg_gradient"
+        app:layout_constraintTop_toTopOf="@id/bg_gradient"
+        app:layout_constraintVertical_bias="0.2"
+        app:shapeAppearanceOverlay="@style/corners_hundred_percentage" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/bg_gradient"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.5"
+        android:background="@drawable/gradient"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.22"
-        app:layout_constraintWidth_percent="0.6"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5"
-        app:shapeAppearanceOverlay="@style/corners_hundred_percentage" />
+        app:layout_constraintVertical_bias="0.5" />
+
+    <TextView
+        android:id="@+id/nfc_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/rajdhani_regular"
+        android:gravity="center"
+        android:alpha="0.6"
+        android:layout_marginHorizontal="15dp"
+        android:text="@string/place_you_card_back_of_your_phone"
+        android:textColor="@color/light_white"
+        android:textSize="32sp"
+        app:layout_constraintVertical_bias="0.2"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/bg"
+        tools:layout_editor_absoluteX="0dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

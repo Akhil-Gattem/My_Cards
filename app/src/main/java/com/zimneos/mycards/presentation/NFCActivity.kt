@@ -1,46 +1,92 @@
 package com.zimneos.mycards.presentation
 
-import android.annotation.SuppressLint
-import android.content.SharedPreferences
+import android.animation.ObjectAnimator
+import android.content.Intent
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
+import android.provider.Settings
+import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import com.github.devnied.emvnfccard.parser.EmvTemplate
 import com.zimneos.mycards.R
 import kotlinx.android.synthetic.main.layout_nfc_screen.bg
+import kotlinx.android.synthetic.main.layout_nfc_screen.bg_gradient
 import java.io.IOException
 import java.time.LocalDate
 import java.time.ZoneId
 
 
 private var mNfcAdapter: NfcAdapter? = null
+private lateinit var vibratorManager: VibratorManager
+lateinit var vibration: Vibrator
+private val handler = Handler()
 
+@RequiresApi(Build.VERSION_CODES.S)
 class NFCActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        vibratorManager = this.getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibration = vibratorManager.defaultVibrator
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, R.anim.fade_in, R.anim.fade_out)
         }
         setContentView(R.layout.layout_nfc_screen)
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        checkNfc()
         startVibration()
+        performAnim()
+    }
+
+
+    private fun checkNfc() {
+        when {
+            mNfcAdapter == null -> {
+                Toast.makeText(this, "NFC is not available for device", Toast.LENGTH_SHORT).show()
+            }
+
+            !mNfcAdapter!!.isEnabled -> {
+                Toast.makeText(this, "NFC is available for device. But, not enabled", Toast.LENGTH_LONG).show()
+                startActivity(Intent(Settings.ACTION_NFC_SETTINGS))
+                this.finish()
+            }
+
+            mNfcAdapter!!.isEnabled -> {
+
+            }
+        }
+    }
+
+    private fun performAnim() {
+        val alphaAnim = ObjectAnimator.ofFloat(
+            bg_gradient,
+            View.ALPHA,
+            0.25f,
+            0.6f
+        ).apply {
+            duration = 1111
+            interpolator = AccelerateDecelerateInterpolator()
+        }
+        alphaAnim.repeatMode = ObjectAnimator.REVERSE
+        alphaAnim.repeatCount = ObjectAnimator.INFINITE
+        alphaAnim.start()
     }
 
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onResume() {
         super.onResume()
+
         if (mNfcAdapter != null) {
             val options = Bundle()
             options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250)
@@ -60,16 +106,14 @@ class NFCActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun startVibration() {
-        val vibratorManager = this.getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
-        val vibrator = vibratorManager.defaultVibrator;
-        vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        handler.postDelayed({
+            vibration.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 50), -1))
+            startVibration()
+        }, 1111)
     }
 
 
-    @SuppressLint("LongLogTag")
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onTagDiscovered(tag: Tag?) {
         val isoDep: IsoDep?
         try {
@@ -101,9 +145,9 @@ class NFCActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             }
             val mySharedPreferences = getSharedPreferences(NFC_PREF_KEY, MODE_PRIVATE)
             val editor = mySharedPreferences.edit()
-            editor.putString(CARD_NUMBER_KEY,cardNumber)
-            editor.putString(CARD_MONTH_KEY,date.monthValue.toString())
-            editor.putString(CARD_YEAR_KEY,date.year.toString())
+            editor.putString(CARD_NUMBER_KEY, cardNumber)
+            editor.putString(CARD_MONTH_KEY, date.monthValue.toString())
+            editor.putString(CARD_YEAR_KEY, date.year.toString())
             editor.apply()
             try {
                 isoDep.close()
@@ -115,10 +159,17 @@ class NFCActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
+        handler.removeCallbacksAndMessages(null)
+        vibration.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 300), -1))
         bg.postOnAnimationDelayed({
             this.finish()
         }, 1000)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        vibratorManager.cancel()
+        handler.removeCallbacksAndMessages(null)
     }
 
     companion object {
