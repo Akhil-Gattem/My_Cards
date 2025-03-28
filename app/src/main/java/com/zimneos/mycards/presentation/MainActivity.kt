@@ -3,7 +3,6 @@ package com.zimneos.mycards.presentation
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProviders
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -53,20 +52,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        val saveData = getSharedPreferences(MY_PREFS_NAME, MODE_PRIVATE).edit()
-        saveData.clear()
-        saveData.apply()
+        sharedPreferences.edit()
+            .clear()
+            .apply()
         subscribeToLiveData()
         super.onPause()
     }
 
     private fun subscribeToLiveData() {
         viewModel.cardData.observe(this@MainActivity) { data ->
-            Log.d("akki", "size ${data.size} ")
             try {
                 for (s in 0..data.size) {
                     saveDataInSharedPreferences(data[s], s)
-                    Log.d("akki", data[s].toString())
                 }
             } catch (_: IndexOutOfBoundsException) {
             }

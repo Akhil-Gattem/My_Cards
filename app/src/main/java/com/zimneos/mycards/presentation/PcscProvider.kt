@@ -13,7 +13,6 @@ class PcscProvider : IProvider {
     override fun transceive(pCommand: ByteArray?): ByteArray? {
         var response: ByteArray? = null
         try {
-            // send command to emv card
             if (mTagCom.isConnected) {
                 response = mTagCom.transceive(pCommand)
             }
@@ -25,9 +24,9 @@ class PcscProvider : IProvider {
 
     override fun getAt(): ByteArray {
         var result: ByteArray?
-        result = mTagCom.historicalBytes // for tags using NFC-B
+        result = mTagCom.historicalBytes
         if (result == null) {
-            result = mTagCom.hiLayerResponse // for tags using NFC-B
+            result = mTagCom.hiLayerResponse
         }
         return result
     }

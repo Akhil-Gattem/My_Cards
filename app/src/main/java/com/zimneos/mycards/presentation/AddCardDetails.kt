@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +17,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.security.crypto.MasterKey
 import com.zimneos.mycards.R
 import com.zimneos.mycards.common.MotionOnClickListener
 import com.zimneos.mycards.model.Holding
@@ -105,10 +103,20 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
 
     private fun subscribeToLivedata() {
         val mySharedPreferences: SharedPreferences =
-            requireActivity().getSharedPreferences(NFCActivity.NFC_PREF_KEY, Context.MODE_PRIVATE)
-        edit_card_number.setText(mySharedPreferences.getString(NFCActivity.CARD_NUMBER_KEY, ""))
-        edit_valid_date.setText(mySharedPreferences.getString(NFCActivity.CARD_MONTH_KEY, ""))
-        edit_valid_year.setText(mySharedPreferences.getString(NFCActivity.CARD_YEAR_KEY, "20"))
+            requireActivity().getSharedPreferences(NFC_PREF_KEY, Context.MODE_PRIVATE)
+
+        edit_card_number.setText(mySharedPreferences.getString(CARD_NUMBER_KEY, ""))
+
+        val month = mySharedPreferences.getString(CARD_MONTH_KEY, "")
+        if (month?.isNotEmpty() == true) {
+            val formattedMonth = if (month.length == 1) "0$month" else month
+            edit_valid_date.setText(formattedMonth)
+        } else {
+            edit_valid_date.setText("")
+        }
+
+        edit_valid_year.setText(mySharedPreferences.getString(CARD_YEAR_KEY, "20"))
+
         setYearEditTextCursor()
     }
 
@@ -119,22 +127,23 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
         setSpaceAfterFourDigits: Boolean = false
     ) {
         currentEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (currentEditText.text.toString().length == length) {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val currentText = currentEditText.text.toString()
+                if (count > before && currentText.length == length) {
+                    if (setSpaceAfterFourDigits) {
+                        val formattedText = currentText.chunked(4).joinToString(" ")
+                        currentEditText.setText(formattedText)
+                        currentEditText.setSelection(formattedText.length)
+                    }
                     currentEditText.clearFocus()
                     nextEditText.requestFocus()
                     nextEditText.isCursorVisible = true
-                    if (setSpaceAfterFourDigits) {
-                        val stringWithSpaceAfterEvery4thChar =
-                            currentEditText.text.replace("....".toRegex(), "$0 ")
-                        currentEditText.setText(stringWithSpaceAfterEvery4thChar)
-                    }
                 }
             }
 
-            override fun afterTextChanged(p0: Editable?) {}
+            override fun afterTextChanged(s: Editable?) {}
         })
     }
 
@@ -237,6 +246,10 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
 
     private fun checkGetMonth(): Boolean {
         getMonth = edit_valid_date.text.toString()
+        if (getMonth.length == 1) {
+            getMonth = "0$getMonth"
+            edit_valid_date.setText(getMonth)
+        }
         return if (getMonth.length == 2) {
             text_valid_till.setTextColor(
                 ContextCompat.getColor(
@@ -255,7 +268,6 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
             false
         }
     }
-
     private fun checkGetYear(): Boolean {
         getYear = edit_valid_year.text.toString()
         return if (getYear.length == 4) {
@@ -314,21 +326,25 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
         }
     }
 
-    override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+    override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {}
 
-    }
+    override fun onNothingSelected(p0: AdapterView<*>?) {}
 
-    override fun onNothingSelected(p0: AdapterView<*>?) {
-    }
-
-    override fun onStop() {
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         val mySharedPreferences: SharedPreferences =
-            requireActivity().getSharedPreferences(NFCActivity.NFC_PREF_KEY, Context.MODE_PRIVATE)
+            requireActivity().getSharedPreferences(NFC_PREF_KEY, Context.MODE_PRIVATE)
         val editor = mySharedPreferences.edit()
-        editor.putString(NFCActivity.CARD_NUMBER_KEY, "")
-        editor.putString(NFCActivity.CARD_MONTH_KEY, "")
-        editor.putString(NFCActivity.CARD_YEAR_KEY, "")
+        editor.putString(CARD_NUMBER_KEY, "")
+        editor.putString(CARD_MONTH_KEY, "")
+        editor.putString(CARD_YEAR_KEY, "")
         editor.apply()
+    }
+
+    companion object {
+        const val NFC_PREF_KEY = "MY_CARDS"
+        const val CARD_NUMBER_KEY = "0q38uti4"
+        const val CARD_MONTH_KEY = "fn2390ut"
+        const val CARD_YEAR_KEY = "0e53yhb8"
     }
 }

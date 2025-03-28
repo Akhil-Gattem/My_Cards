@@ -163,9 +163,7 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
         AlertDialog.Builder(requireContext(), R.style.AlertDialog).setTitle("Delete Card")
             .setMessage("Are you sure you want to delete this card details?")
             .setPositiveButton("Yes") { _, _ ->
-                deleteCardData(
-                    cardNumber, cardHolderName, month, year, cvv, cardType, cardNote, position
-                )
+                deleteCardData(position)
                 view.delete_btn.visibility = View.GONE
             }.setNegativeButton("No") { _, _ ->
                 view.delete_btn.visibility = View.GONE
@@ -173,16 +171,9 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
     }
 
     private fun deleteCardData(
-        cardNumber: String?,
-        cardHolderName: String?,
-        month: String?,
-        year: String?,
-        cvv: String?,
-        cardType: String?,
-        cardNote: String?,
         position: Int
     ) {
-        viewModel.deleteData(cardNumber, cardHolderName, month, year, cvv, cardType, cardNote)
+        viewModel.deleteData(position)
         cardsListAdapter.notifyItemRemoved(position)
         viewModel.refresh()
     }

@@ -16,37 +16,24 @@ class ListViewModel : ViewModel() {
         _cardData.value = holdingArrayList
     }
 
-    fun refresh(){
+    fun refresh() {
         _cardData.value = holdingArrayList
     }
 
     fun addData(data: Holding) {
-        holdingArrayList.add(data)
+        val currentList = _cardData.value ?: mutableListOf()
+        currentList.add(data)
+        _cardData.value = currentList
     }
 
     fun clearData() {
         holdingArrayList.clear()
+        _cardData.value = holdingArrayList
     }
 
-    fun deleteData(
-        cardNumber: String?,
-        cardHolderName: String?,
-        month: String?,
-        year: String?,
-        cvv: String?,
-        cardType: String?,
-        cardNote: String?
-    ) {
-        holdingArrayList.remove(
-            Holding(
-                cardNumber,
-                cardHolderName,
-                month,
-                year,
-                cvv,
-                cardType,
-                cardNote
-            )
-        )
+    fun deleteData(position: Int) {
+        val currentList = _cardData.value ?: mutableListOf()
+        currentList.removeAt(position)
+        _cardData.value = currentList
     }
 }

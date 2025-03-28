@@ -10,9 +10,7 @@ import androidx.core.content.ContextCompat
 
 object BiometricUtils {
 
-    /*
-     * Check whether the Device is Capable of the Biometric
-     */
+
     private fun hasBiometricCapability(context: Context): Int {
         return BiometricManager.from(context).canAuthenticate(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
     }
@@ -20,7 +18,6 @@ object BiometricUtils {
     fun isBiometricReady(context: Context) =
         hasBiometricCapability(context) == BiometricManager.BIOMETRIC_SUCCESS
 
-    //setting up a biometric
     private fun setBiometricPromptInfo(
         title: String,
         subtitle: String,
@@ -35,9 +32,6 @@ object BiometricUtils {
 
     }
 
-    /*
-     * Initiate the Biometric Prompt
-     */
     private fun initBiometricPrompt(
         activity: AppCompatActivity,
         listener: BiometricAuthListener
@@ -57,9 +51,6 @@ object BiometricUtils {
         return BiometricPrompt(activity, executor, callback)
     }
 
-    /*
-     * Display the Biometric Prompt
-     */
     fun showBiometricPrompt(
         title: String = "Unlock My Cards",
         subtitle: String = "",
