@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.NFC" />
-    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+    <uses-feature android:name="android.hardware.nfc" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -18,8 +18,7 @@
         tools:ignore="AllowBackup">
         <activity
             android:name=".presentation.StartScreenActivity"
-            android:exported="true"
-            android:screenOrientation="unspecified">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -29,8 +28,7 @@
         <activity
             android:name=".presentation.MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustNothing"
-            android:screenOrientation="unspecified">
+            android:windowSoftInputMode="adjustNothing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -42,7 +40,7 @@
             android:exported="true"
             android:windowSoftInputMode="adjustNothing"
             android:launchMode="singleTop"
-            android:screenOrientation="unspecified">
+            tools:targetApi="s">
             <intent-filter>
                 <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
                 <action android:name="android.intent.action.MAIN" />

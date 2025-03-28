@@ -5,14 +5,14 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.zimneos.mycards"
         minSdk 21
-        targetSdk 34
-        versionCode 10
-        versionName "1.2"
+        targetSdk 35
+        versionCode 26
+        versionName "2.6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
