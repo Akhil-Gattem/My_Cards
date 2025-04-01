@@ -61,9 +61,7 @@ class NFCActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 this.finish()
             }
 
-            mNfcAdapter!!.isEnabled -> {
-
-            }
+            mNfcAdapter!!.isEnabled -> {}
         }
     }
 

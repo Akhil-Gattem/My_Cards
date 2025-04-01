@@ -1,9 +1,12 @@
 package com.zimneos.mycards.presentation
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.nfc.NfcAdapter
 import android.os.Bundle
+import android.widget.Toast
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -11,59 +14,101 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.EditText
+import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import com.zimneos.mycards.R
 import com.zimneos.mycards.common.MotionOnClickListener
+import com.zimneos.mycards.databinding.LayoutAddCardBinding
 import com.zimneos.mycards.model.Holding
 import com.zimneos.mycards.viewmodel.ListViewModel
 import com.zimneos.mycards.viewmodel.NFCCardDataViewModel
-import kotlinx.android.synthetic.main.layout_add_card.*
 
 class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModelStoreOwner {
 
-    private lateinit var getCardNumber: String
-    private lateinit var getHolderName: String
-    private lateinit var getMonth: String
-    private lateinit var getYear: String
-    private lateinit var getCVV: String
-    private lateinit var getCardType: String
-    private lateinit var getCardNotes: String
+    private var mNfcAdapter: NfcAdapter? = null
+    private var _binding: LayoutAddCardBinding? = null
+    private val binding get() = _binding!!
     private lateinit var listviewModel: ListViewModel
     private lateinit var nfcViewModel: NFCCardDataViewModel
     private var cardTypes = arrayOf<String?>("VISA", "MASTERCARD", "RUPAY")
+    private var getCardNumber: String = ""
+    private var getHolderName: String = ""
+    private var getMonth: String = ""
+    private var getYear: String = ""
+    private var getCVV: String = ""
+    private var getCardType: String = ""
+    private var getCardNotes: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        val rootView = inflater.inflate(R.layout.layout_add_card, container, false)
+    ): View {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                requireActivity().supportFragmentManager.beginTransaction().apply {
+                    setCustomAnimations(
+                        R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out
+                    )
+                    replace(R.id.main_container, CardDataFragment())
+                    commit()
+                }
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
+        _binding = LayoutAddCardBinding.inflate(inflater, container, false)
         setUpViewModel()
+        clearEditTexts()
+        mNfcAdapter = NfcAdapter.getDefaultAdapter(requireContext())
+        checkNfc()
+        if (savedInstanceState != null) {
+            getCardNumber = savedInstanceState.getString("cardNumber", "")
+            getHolderName = savedInstanceState.getString("holderName", "")
+            getMonth = savedInstanceState.getString("month", "")
+            getYear = savedInstanceState.getString("year", "")
+            getCVV = savedInstanceState.getString("cvv", "")
+            getCardType = savedInstanceState.getString("cardType", cardTypes[0] ?: "VISA")
+            getCardNotes = savedInstanceState.getString("cardNotes", "")
 
-        savedInstanceState?.let { bundle ->
-            getCardNumber = bundle.getString("cardNumber", "")
-            getHolderName = bundle.getString("holderName", "")
-            getMonth = bundle.getString("month", "")
-            getYear = bundle.getString("year", "")
-            getCVV = bundle.getString("cvv", "")
-            getCardType = bundle.getString("cardType", cardTypes[0] ?: "VISA")
-            getCardNotes = bundle.getString("cardNotes", "")
-
-            edit_card_number?.setText(getCardNumber)
-            edit_holder_name?.setText(getHolderName)
-            edit_valid_date?.setText(getMonth)
-            edit_valid_year?.setText(getYear)
-            edit_cvv?.setText(getCVV)
-            edit_card_notes?.setText(getCardNotes)
-            spinner_card_type?.setSelection(cardTypes.indexOf(getCardType))
+            with(binding) {
+                editCardNumber.setText(getCardNumber)
+                editHolderName.setText(getHolderName)
+                editValidDate.setText(getMonth)
+                editValidYear.setText(getYear)
+                editCvv.setText(getCVV)
+                editCardNotes.setText(getCardNotes)
+                spinnerCardType.setSelection(cardTypes.indexOf(getCardType))
+            }
         }
 
-        return rootView
+        return binding.root
+    }
+
+
+
+    private fun checkNfc() {
+        when {
+            mNfcAdapter == null -> {
+                Toast.makeText(
+                    requireContext(),
+                    "NFC is not available for device",
+                    Toast.LENGTH_SHORT
+                ).show()
+                binding.nfcButton.visibility = View.INVISIBLE
+            }
+
+            mNfcAdapter?.isEnabled == false -> {
+                binding.nfcButton.visibility = View.VISIBLE
+            }
+
+            mNfcAdapter?.isEnabled == true -> {
+                binding.nfcButton.visibility = View.VISIBLE
+            }
+        }
     }
 
     private val appViewModelStore: ViewModelStore by lazy {
@@ -74,79 +119,89 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
         return appViewModelStore
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        add_button.setOnTouchListener(MotionOnClickListener(requireContext()) {
-            if (checkEditTextCriteria()) {
-                addDataInViewModel()
+        with(binding) {
+            addButton.setOnTouchListener(MotionOnClickListener(requireContext()) {
+                if (checkEditTextCriteria()) {
+                    addDataInViewModel()
+                    clearEditTexts()
+                    navigateToCardDataFragment()
+                }
+            })
+
+            nfcButton.setOnTouchListener(MotionOnClickListener(requireContext()) {
                 clearEditTexts()
-                navigateToCardDataFragment()
-            }
-        })
+                val intent = Intent(requireContext(), NFCActivity::class.java)
+                startActivity(intent)
+            })
 
-        nfc_button.setOnTouchListener(MotionOnClickListener(requireContext()) {
-            clearEditTexts()
-            val intent = Intent(requireContext(), NFCActivity::class.java)
-            startActivity(intent)
-        })
+            val customDropDownAdapter = CustomDropDownAdapter(requireContext(), cardTypes)
+            spinnerCardType.adapter = customDropDownAdapter
+            spinnerCardType.onItemSelectedListener = this@AddCardDetails
 
-        val customDropDownAdapter = CustomDropDownAdapter(requireContext(), cardTypes)
-        spinner_card_type.adapter = customDropDownAdapter
-        spinner_card_type.onItemSelectedListener = this
-
-        setEditTextFocusToNextTextView(edit_card_number, edit_holder_name, 16, true)
-        setEditTextFocusToNextTextView(edit_valid_date, edit_valid_year, 2)
-        setEditTextFocusToNextTextView(edit_valid_year, edit_cvv, 4)
-        setEditTextFocusToNextTextView(edit_cvv, edit_card_notes, 3)
+            setEditTextFocusToNextTextView(editCardNumber, editHolderName, 16, true)
+            setEditTextFocusToNextTextView(editValidDate, editValidYear, 2)
+            setEditTextFocusToNextTextView(editValidYear, editCvv, 4)
+            setEditTextFocusToNextTextView(editCvv, editCardNotes, 3)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
-        outState.putString("cardNumber", edit_card_number.text.toString())
-        outState.putString("holderName", edit_holder_name.text.toString())
-        outState.putString("month", edit_valid_date.text.toString())
-        outState.putString("year", edit_valid_year.text.toString())
-        outState.putString("cvv", edit_cvv.text.toString())
-        outState.putString("cardType", spinner_card_type.selectedItem as String)
-        outState.putString("cardNotes", edit_card_notes.text.toString())
+        _binding?.let {
+            with(it) {
+                outState.putString("cardNumber", editCardNumber.text.toString())
+                outState.putString("holderName", editHolderName.text.toString())
+                outState.putString("month", editValidDate.text.toString())
+                outState.putString("year", editValidYear.text.toString())
+                outState.putString("cvv", editCvv.text.toString())
+                outState.putString("cardType", spinnerCardType.selectedItem as String)
+                outState.putString("cardNotes", editCardNotes.text.toString())
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        if (edit_card_number.text.isEmpty()) {
+        if (binding.editCardNumber.text.isEmpty()) {
             subscribeToLivedata()
         }
     }
 
     override fun onPause() {
         super.onPause()
-        getCardNumber = edit_card_number.text.toString()
-        getHolderName = edit_holder_name.text.toString()
-        getMonth = edit_valid_date.text.toString()
-        getYear = edit_valid_year.text.toString()
-        getCVV = edit_cvv.text.toString()
-        getCardType = spinner_card_type.selectedItem as String
-        getCardNotes = edit_card_notes.text.toString()
+        with(binding) {
+            getCardNumber = editCardNumber.text.toString()
+            getHolderName = editHolderName.text.toString()
+            getMonth = editValidDate.text.toString()
+            getYear = editValidYear.text.toString()
+            getCVV = editCvv.text.toString()
+            getCardType = spinnerCardType.selectedItem as String
+            getCardNotes = editCardNotes.text.toString()
+        }
     }
 
     private fun subscribeToLivedata() {
         val mySharedPreferences: SharedPreferences =
             requireActivity().getSharedPreferences(NFC_PREF_KEY, Context.MODE_PRIVATE)
 
-        edit_card_number.setText(mySharedPreferences.getString(CARD_NUMBER_KEY, ""))
+        with(binding) {
+            editCardNumber.setText(mySharedPreferences.getString(CARD_NUMBER_KEY, ""))
 
-        val month = mySharedPreferences.getString(CARD_MONTH_KEY, "")
-        if (month?.isNotEmpty() == true) {
-            val formattedMonth = if (month.length == 1) "0$month" else month
-            edit_valid_date.setText(formattedMonth)
-        } else {
-            edit_valid_date.setText("")
+            val month = mySharedPreferences.getString(CARD_MONTH_KEY, "")
+            if (month?.isNotEmpty() == true) {
+                val formattedMonth = if (month.length == 1) "0$month" else month
+                editValidDate.setText(formattedMonth)
+            } else {
+                editValidDate.setText("")
+            }
+
+            editValidYear.setText(mySharedPreferences.getString(CARD_YEAR_KEY, "20"))
+            setYearEditTextCursor()
         }
-
-        edit_valid_year.setText(mySharedPreferences.getString(CARD_YEAR_KEY, "20"))
-        setYearEditTextCursor()
     }
 
     private fun setEditTextFocusToNextTextView(
@@ -177,9 +232,9 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
     }
 
     private fun setYearEditTextCursor() {
-        edit_valid_year.setOnFocusChangeListener { _, hasFocus ->
-            if (edit_valid_year.text.length == 2)
-                if (hasFocus) edit_valid_year.setSelection(2)
+        binding.editValidYear.setOnFocusChangeListener { _, hasFocus ->
+            if (binding.editValidYear.text.length == 2)
+                if (hasFocus) binding.editValidYear.setSelection(2)
         }
     }
 
@@ -198,19 +253,21 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
                 checkGetYear() && checkGetCVV() && checkGetCardType() && checkGetCardNotes()
 
     private fun clearEditTexts() {
-        edit_card_notes.setText("")
-        edit_cvv.setText("")
-        edit_valid_year.setText("")
-        edit_valid_date.setText("")
-        edit_holder_name.setText("")
-        edit_card_number.setText("")
-        edit_card_notes.hint = ""
-
+        with(binding) {
+            editCardNotes.setText("")
+            editCvv.setText("")
+            editValidYear.setText("")
+            editValidDate.setText("")
+            editHolderName.setText("")
+            editCardNumber.setText("")
+            editCardNotes.hint = ""
+        }
         getCardNumber = ""
         getHolderName = ""
         getMonth = ""
         getYear = ""
         getCVV = ""
+        getCardType = ""
         getCardNotes = ""
     }
 
@@ -229,98 +286,163 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
     }
 
     private fun setUpViewModel() {
-        listviewModel = ViewModelProviders.of(requireActivity())[ListViewModel::class.java]
+        listviewModel = ViewModelProvider(requireActivity())[ListViewModel::class.java]
         nfcViewModel = ViewModelProvider(requireActivity())[NFCCardDataViewModel::class.java]
     }
 
     private fun checkGetCardNumber(): Boolean {
-        getCardNumber = edit_card_number.text.toString()
+        getCardNumber = binding.editCardNumber.text.toString()
         return if (getCardNumber.length == 19) {
-            text_card_number.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_white))
-            text_card_number_warning.visibility = View.INVISIBLE
+            binding.textCardNumber.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_white
+                )
+            )
+            binding.textCardNumberWarning.visibility = View.INVISIBLE
             true
         } else {
-            text_card_number_warning.visibility = View.VISIBLE
-            text_card_number.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_red))
+            binding.textCardNumberWarning.visibility = View.VISIBLE
+            binding.textCardNumber.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_red
+                )
+            )
             false
         }
     }
 
     private fun checkGetHolderName(): Boolean {
-        getHolderName = edit_holder_name.text.toString()
+        getHolderName = binding.editHolderName.text.toString()
         return if (getHolderName.length > 1) {
-            text_holder_name.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_white))
-            text_holder_name_warning.visibility = View.INVISIBLE
+            binding.textHolderName.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_white
+                )
+            )
+            binding.textHolderNameWarning.visibility = View.INVISIBLE
             true
         } else {
-            text_holder_name_warning.visibility = View.VISIBLE
-            text_holder_name.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_red))
+            binding.textHolderNameWarning.visibility = View.VISIBLE
+            binding.textHolderName.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_red
+                )
+            )
             false
         }
     }
 
     private fun checkGetMonth(): Boolean {
-        getMonth = edit_valid_date.text.toString()
+        getMonth = binding.editValidDate.text.toString()
         if (getMonth.length == 1) {
             getMonth = "0$getMonth"
-            edit_valid_date.setText(getMonth)
+            binding.editValidDate.setText(getMonth)
         }
         return if (getMonth.length == 2) {
-            text_valid_till.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_white))
-            text_valid_till_warning.visibility = View.INVISIBLE
+            binding.textValidTill.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_white
+                )
+            )
+            binding.textValidTillWarning.visibility = View.INVISIBLE
             true
         } else {
-            text_valid_till.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_red))
-            text_valid_till_warning.visibility = View.VISIBLE
+            binding.textValidTill.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_red
+                )
+            )
+            binding.textValidTillWarning.visibility = View.VISIBLE
             false
         }
     }
 
     private fun checkGetYear(): Boolean {
-        getYear = edit_valid_year.text.toString()
+        getYear = binding.editValidYear.text.toString()
         return if (getYear.length == 4) {
-            text_valid_till.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_white))
-            text_valid_till_warning.visibility = View.INVISIBLE
+            binding.textValidTill.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_white
+                )
+            )
+            binding.textValidTillWarning.visibility = View.INVISIBLE
             true
         } else {
-            text_valid_till.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_red))
-            text_valid_till_warning.visibility = View.VISIBLE
+            binding.textValidTill.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_red
+                )
+            )
+            binding.textValidTillWarning.visibility = View.VISIBLE
             false
         }
     }
 
     private fun checkGetCVV(): Boolean {
-        getCVV = edit_cvv.text.toString()
+        getCVV = binding.editCvv.text.toString()
         return if (getCVV.length == 3) {
-            text_cvv.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_white))
-            text_cvv_warning.visibility = View.INVISIBLE
+            binding.textCvv.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_white
+                )
+            )
+            binding.textCvvWarning.visibility = View.INVISIBLE
             true
         } else {
-            text_cvv_warning.visibility = View.VISIBLE
-            text_cvv.setTextColor(ContextCompat.getColor(requireContext(), R.color.light_red))
+            binding.textCvvWarning.visibility = View.VISIBLE
+            binding.textCvv.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_red
+                )
+            )
             false
         }
     }
 
     private fun checkGetCardType(): Boolean {
-        getCardType = spinner_card_type.selectedItem as String
+        getCardType = binding.spinnerCardType.selectedItem as String
         return true
     }
 
     private fun checkGetCardNotes(): Boolean {
-        getCardNotes = edit_card_notes.text.toString()
+        getCardNotes = binding.editCardNotes.text.toString()
         return if (getCardNotes.isEmpty()) {
-            edit_card_notes.setHintTextColor(ContextCompat.getColor(requireContext(), R.color.light_red_fade))
+            binding.editCardNotes.setHintTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_red_fade
+                )
+            )
             false
         } else {
-            edit_card_notes.setHintTextColor(ContextCompat.getColor(requireContext(), R.color.light_white))
+            binding.editCardNotes.setHintTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.light_white
+                )
+            )
             true
         }
     }
 
-    override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {}
+    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {}
 
-    override fun onNothingSelected(p0: AdapterView<*>?) {}
+    override fun onNothingSelected(parent: AdapterView<*>?) {}
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -338,5 +460,9 @@ class AddCardDetails : Fragment(), AdapterView.OnItemSelectedListener, ViewModel
         const val CARD_NUMBER_KEY = "0q38uti4"
         const val CARD_MONTH_KEY = "fn2390ut"
         const val CARD_YEAR_KEY = "0e53yhb8"
+
+        fun newInstance(): AddCardDetails {
+            return AddCardDetails()
+        }
     }
 }

@@ -16,7 +16,6 @@ import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProviders
@@ -26,9 +25,11 @@ import com.zimneos.mycards.R
 import com.zimneos.mycards.common.MotionOnClickListener
 import com.zimneos.mycards.model.Holding
 import com.zimneos.mycards.viewmodel.ListViewModel
-import kotlinx.android.synthetic.main.layout_main_content_for_fragment.*
-import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.*
-import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.view.*
+import kotlinx.android.synthetic.main.layout_main_content_for_fragment.add_new
+import kotlinx.android.synthetic.main.layout_main_content_for_fragment.arrow
+import kotlinx.android.synthetic.main.layout_main_content_for_fragment.click_to_add_text
+import kotlinx.android.synthetic.main.layout_main_content_for_fragment.recyclerView
+import kotlinx.android.synthetic.main.layout_main_screen_recylerview_list.view.delete_btn
 
 
 class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
@@ -66,7 +67,8 @@ class CardDataFragment : Fragment(), CardsListAdapter.OnItemListener {
             setCustomAnimations(
                 R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out
             )
-            replace(R.id.main_container, AddCardDetails()).addToBackStack(null).commit()
+            replace(R.id.main_container, AddCardDetails.newInstance())
+            commit()
         }
     }
 
